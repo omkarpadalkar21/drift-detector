@@ -5,7 +5,25 @@ import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
-export async function GET(req: Request) {
+/**
+ * @swagger
+ * /api/repos:
+ *   get:
+ *     summary: List repositories
+ *     description: Retrieve all repositories owned by the current authenticated user.
+ *     responses:
+ *       200:
+ *         description: A list of repositories.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/RepoSummary'
+ *       401:
+ *         description: Unauthorized.
+ */
+export async function GET() {
   // 1. Auth check
   const session = await auth.api.getSession({
     headers: await headers(),

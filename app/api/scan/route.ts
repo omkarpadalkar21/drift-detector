@@ -6,6 +6,39 @@ import { and, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
+/**
+ * @swagger
+ * /api/scan:
+ *   post:
+ *     summary: Start a new repository scan
+ *     description: Registers a repository if it does not exist and schedules a new scan.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [url]
+ *             properties:
+ *               url:
+ *                 type: string
+ *                 description: The Git URL of the repository (HTTP/HTTPS).
+ *     responses:
+ *       201:
+ *         description: Scan successfully scheduled.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 scan_id:
+ *                   type: string
+ *                   format: uuid
+ *       400:
+ *         description: Invalid input or malformed URL.
+ *       401:
+ *         description: Unauthorized.
+ */
 export async function POST(req: Request) {
   // 1. Auth check
   const session = await auth.api.getSession({
@@ -22,7 +55,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     url = body.url;
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
@@ -36,7 +69,7 @@ export async function POST(req: Request) {
     if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
       return NextResponse.json({ error: "URL must use HTTP or HTTPS protocol" }, { status: 400 });
     }
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: "Malformed URL" }, { status: 400 });
   }
 
@@ -49,7 +82,7 @@ export async function POST(req: Request) {
         return `${parts[0]}/${parts[1]}`;
       }
       return parts[0] || u.hostname;
-    } catch (_) {
+    } catch {
       return urlStr;
     }
   };

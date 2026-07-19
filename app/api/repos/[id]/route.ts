@@ -4,7 +4,40 @@ import * as schema from "@/db/schema";
 import { and, eq, desc, asc } from "drizzle-orm";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
+import type { Severity, Finding } from "@/types/contracts";
 
+/**
+ * @swagger
+ * /api/repos/{id}:
+ *   get:
+ *     summary: Retrieve repository details
+ *     description: Fetch details of a specific repository by its ID, including the latest completed scan's drift report.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The repository ID.
+ *     responses:
+ *       200:
+ *         description: Repository details.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/RepoSummary'
+ *                 - type: object
+ *                   properties:
+ *                     latest_report:
+ *                       $ref: '#/components/schemas/DriftReport'
+ *                       nullable: true
+ *       401:
+ *         description: Unauthorized.
+ *       404:
+ *         description: Repository not found.
+ */
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -66,11 +99,11 @@ export async function GET(
         commit: f.commit,
         author: f.author,
         timestamp: f.timestamp.toISOString(),
-        severity: f.severity as any,
+        severity: f.severity as Severity,
         score: f.score,
         confidence: f.confidence,
         change_summary: f.changeSummary,
-        evidence: f.evidence as any,
+        evidence: f.evidence as unknown as Finding["evidence"],
         explanation: f.explanation,
         remediation: f.remediation,
       }));

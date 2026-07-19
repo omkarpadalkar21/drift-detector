@@ -5,6 +5,39 @@ import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
+/**
+ * @swagger
+ * /api/scans/{id}:
+ *   get:
+ *     summary: Retrieve scan status
+ *     description: Fetch the current status and results of a scheduled scan.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The scan ID.
+ *     responses:
+ *       200:
+ *         description: Scan details and findings.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/Scan'
+ *                 - type: object
+ *                   properties:
+ *                     findings:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Finding'
+ *       401:
+ *         description: Unauthorized.
+ *       404:
+ *         description: Scan not found.
+ */
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> }

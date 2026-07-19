@@ -1,10 +1,37 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
-import { and, eq, asc } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
+import type { Severity, Finding } from "@/types/contracts";
 
+/**
+ * @swagger
+ * /api/report/{id}:
+ *   get:
+ *     summary: Retrieve drift report
+ *     description: Fetch the final drift report details for a completed scan.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The scan ID.
+ *     responses:
+ *       200:
+ *         description: Completed drift report.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/DriftReport'
+ *       401:
+ *         description: Unauthorized.
+ *       404:
+ *         description: Report not found or scan not completed.
+ */
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -68,11 +95,11 @@ export async function GET(
       commit: f.commit,
       author: f.author,
       timestamp: f.timestamp.toISOString(),
-      severity: f.severity as any,
+      severity: f.severity as Severity,
       score: f.score,
       confidence: f.confidence,
       change_summary: f.changeSummary,
-      evidence: f.evidence as any,
+      evidence: f.evidence as unknown as Finding["evidence"],
       explanation: f.explanation,
       remediation: f.remediation,
     }));

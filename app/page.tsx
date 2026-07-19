@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSession } from "@/lib/auth-client";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { ShieldCheck, ShieldAlert, GitBranch, ArrowRight, Play, Globe, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,8 +17,14 @@ export default function Home() {
   const [scanId, setScanId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
 
   const router = useRouter();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleScanSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,7 +61,7 @@ export default function Home() {
     setScanUrl("https://github.com/acme/payments-infra");
   };
 
-  if (isPending) {
+  if (!mounted || isPending) {
     return (
       <div className="flex flex-col items-center justify-center flex-1 py-32">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -71,9 +77,10 @@ export default function Home() {
           // Active Scan Progress Screen
           <motion.div
             key="progress"
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: shouldReduceMotion ? 1 : 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
+            exit={{ opacity: 0, scale: shouldReduceMotion ? 1 : 0.95 }}
+            transition={shouldReduceMotion ? { duration: 0 } : undefined}
             className="w-full animate-fadeIn"
           >
             <ScanProgress scanId={scanId} onComplete={(repoId) => router.push(`/repos/${repoId}`)} />
@@ -82,9 +89,10 @@ export default function Home() {
           // Authenticated Scanner Form
           <motion.div
             key="scanner-form"
-            initial={{ opacity: 0, y: 15 }}
+            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 15 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
+            exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -15 }}
+            transition={shouldReduceMotion ? { duration: 0 } : undefined}
             className="w-full max-w-xl mx-auto space-y-6"
           >
             <Card className="border border-border bg-card shadow-md">
@@ -151,9 +159,10 @@ export default function Home() {
           // Unauthenticated Landing Page Screen
           <motion.div
             key="landing"
-            initial={{ opacity: 0, y: 15 }}
+            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 15 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
+            exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -15 }}
+            transition={shouldReduceMotion ? { duration: 0 } : undefined}
             className="w-full flex flex-col items-center"
           >
             <div className="text-center space-y-6 max-w-2xl">

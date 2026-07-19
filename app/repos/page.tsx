@@ -1,0 +1,248 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/empty-state";
+import { ErrorState } from "@/components/error-state";
+import { RepoSummary } from "@/types/contracts";
+import { Calendar, ExternalLink, Plus } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+
+export default function ReposPage() {
+  const [repos, setRepos] = useState<RepoSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const router = useRouter();
+
+  const fetchRepos = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/repos");
+      if (!res.ok) {
+        if (res.status === 401) {
+          router.push("/sign-in?callbackUrl=/repos");
+          return;
+        }
+        throw new Error("Failed to fetch repositories list");
+      }
+      const data = await res.json();
+      setRepos(data);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred.";
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    let active = true;
+
+    fetch("/api/repos")
+      .then((res) => {
+        if (!res.ok) {
+          if (res.status === 401) {
+            router.push("/sign-in?callbackUrl=/repos");
+            return;
+          }
+          throw new Error("Failed to fetch repositories list");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        if (active && data) {
+          setRepos(data);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (active) {
+          setError(err instanceof Error ? err.message : "An unexpected error occurred.");
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [router]);
+
+  const formatLastScan = (dateString: string | null) => {
+    if (!dateString) return "Never scanned";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  // Color mapping based on score
+  const getScoreColor = (score: number | null) => {
+    if (score === null) return "text-muted-foreground bg-muted";
+    if (score >= 80) return "text-severity-critical bg-severity-critical/10 border-severity-critical/20";
+    if (score >= 50) return "text-severity-high bg-severity-high/10 border-severity-high/20";
+    if (score >= 20) return "text-severity-medium bg-severity-medium/10 border-severity-medium/20";
+    return "text-emerald-500 bg-emerald-500/10 border-emerald-500/20";
+  };
+
+  const getScoreProgressColor = (score: number | null) => {
+    if (score === null) return "bg-muted";
+    if (score >= 80) return "bg-severity-critical";
+    if (score >= 50) return "bg-severity-high";
+    if (score >= 20) return "bg-severity-medium";
+    return "bg-emerald-500";
+  };
+
+  const getScoreLabel = (score: number | null) => {
+    if (score === null) return "Unknown";
+    if (score >= 80) return "Critical Drift";
+    if (score >= 50) return "High Drift";
+    if (score >= 20) return "Medium Drift";
+    return "Low Drift";
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="space-y-2">
+            <Skeleton className="h-9 w-48" />
+            <Skeleton className="h-4 w-72" />
+          </div>
+          <Skeleton className="h-9 w-32" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i} className="border border-border/60">
+              <CardHeader className="space-y-2 pb-4">
+                <Skeleton className="h-5 w-1/2" />
+                <Skeleton className="h-4 w-3/4" />
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Skeleton className="h-3 w-1/3" />
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <Skeleton className="h-3 w-12" />
+                    <Skeleton className="h-3 w-8" />
+                  </div>
+                  <Skeleton className="h-2 w-full" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return <ErrorState description={error} onRetry={fetchRepos} />;
+  }
+
+  if (repos.length === 0) {
+    return (
+      <div className="max-w-xl mx-auto py-12">
+        <EmptyState
+          title="No repositories added yet"
+          description="Add and scan your first git repository to start tracking configuration drift and security changes."
+          actionText="Add & Scan Repository"
+          onAction={() => router.push("/")}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Monitored Repositories</h1>
+          <p className="text-muted-foreground mt-1">
+            Overview of configuration drift and scans across your repository stack.
+          </p>
+        </div>
+        <Link href="/">
+          <Button className="font-medium gap-2 cursor-pointer shadow-sm">
+            <Plus className="h-4 w-4" /> Scan New Repo
+          </Button>
+        </Link>
+      </div>
+
+      {/* Grid List */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4"
+      >
+        {repos.map((repo) => (
+          <Link key={repo.id} href={`/repos/${repo.id}`} className="block group">
+            <Card className="h-full border border-border bg-card hover:bg-muted/20 transition-all duration-200 select-none shadow-sm cursor-pointer relative overflow-hidden">
+              {/* Outer Glow Highlight on Hover */}
+              <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary to-primary/40 opacity-0 group-hover:opacity-100 transition-opacity" />
+
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg font-bold truncate flex items-center justify-between gap-2">
+                  <span className="truncate group-hover:text-primary transition-colors">{repo.name}</span>
+                  <ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all translate-x-[-4px] group-hover:translate-x-0" />
+                </CardTitle>
+                <CardDescription className="font-mono text-xs truncate text-muted-foreground flex items-center space-x-1">
+                  <span>{repo.url}</span>
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent className="space-y-4">
+                {/* Last Scanned */}
+                <div className="flex items-center text-xs text-muted-foreground space-x-1.5">
+                  <Calendar className="h-3.5 w-3.5" />
+                  <span>{formatLastScan(repo.last_scan_at)}</span>
+                </div>
+
+                {/* Score Bar */}
+                {repo.latest_drift_score !== null ? (
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="font-semibold text-muted-foreground">Drift Score</span>
+                      <span className={`px-2 py-0.5 rounded-full border text-[10px] font-bold ${getScoreColor(repo.latest_drift_score)}`}>
+                        {repo.latest_drift_score.toFixed(0)} - {getScoreLabel(repo.latest_drift_score)}
+                      </span>
+                    </div>
+                    <div className="h-2 w-full bg-muted rounded-full overflow-hidden border border-border/20">
+                      <div
+                        className={`h-full transition-all duration-500 ${getScoreProgressColor(repo.latest_drift_score)}`}
+                        style={{ width: `${repo.latest_drift_score}%` }}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="font-semibold text-muted-foreground">Drift Score</span>
+                      <span className="px-2 py-0.5 rounded-full border text-[10px] font-bold text-muted-foreground bg-muted border-border/30">
+                        Pending
+                      </span>
+                    </div>
+                    <div className="h-2 w-full bg-muted rounded-full overflow-hidden border border-border/20">
+                      <div className="h-full bg-muted/60 animate-pulse w-1/12" />
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
+      </motion.div>
+    </div>
+  );
+}

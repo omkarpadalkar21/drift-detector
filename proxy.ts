@@ -23,7 +23,7 @@ export function proxy(request: NextRequest) {
       );
     }
 
-    const loginUrl = new URL("/auth/login", request.url);
+    const loginUrl = new URL("/sign-in", request.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(loginUrl);
   }

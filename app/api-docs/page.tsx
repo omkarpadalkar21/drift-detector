@@ -17,6 +17,37 @@ const SwaggerUI = dynamic(() => import("swagger-ui-react"), {
 });
 
 export default function ApiDocsPage() {
+  React.useEffect(() => {
+    const originalWarn = console.warn;
+    console.warn = (...args: unknown[]) => {
+      if (
+        args[0] &&
+        typeof args[0] === "string" &&
+        (args[0].includes("UNSAFE_componentWillReceiveProps") || args[0].includes("ModelCollapse"))
+      ) {
+        return;
+      }
+      originalWarn(...args);
+    };
+
+    const originalError = console.error;
+    console.error = (...args: unknown[]) => {
+      if (
+        args[0] &&
+        typeof args[0] === "string" &&
+        (args[0].includes("UNSAFE_componentWillReceiveProps") || args[0].includes("ModelCollapse"))
+      ) {
+        return;
+      }
+      originalError(...args);
+    };
+
+    return () => {
+      console.warn = originalWarn;
+      console.error = originalError;
+    };
+  }, []);
+
   return (
     <div className="w-full max-w-5xl mx-auto py-8 px-4 sm:px-6 lg:px-8 bg-card border border-border rounded-xl shadow-sm mt-4">
       <div className="border-b border-border pb-6 mb-6">

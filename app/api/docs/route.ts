@@ -160,6 +160,175 @@ export async function GET() {
           sessionCookie: [],
         },
       ],
+      paths: {
+        "/api/repos": {
+          get: {
+            summary: "List repositories",
+            description: "Retrieve all repositories owned by the current authenticated user.",
+            responses: {
+              "200": {
+                description: "A list of repositories.",
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "array",
+                      items: { $ref: "#/components/schemas/RepoSummary" },
+                    },
+                  },
+                },
+              },
+              "401": { description: "Unauthorized." },
+            },
+          },
+        },
+        "/api/repos/{id}": {
+          get: {
+            summary: "Retrieve repository details",
+            description: "Fetch details of a specific repository by its ID, including the latest completed scan's drift report.",
+            parameters: [
+              {
+                in: "path",
+                name: "id",
+                required: true,
+                schema: { type: "string", format: "uuid" },
+                description: "The repository ID.",
+              },
+            ],
+            responses: {
+              "200": {
+                description: "Repository details.",
+                content: {
+                  "application/json": {
+                    schema: {
+                      allOf: [
+                        { $ref: "#/components/schemas/RepoSummary" },
+                        {
+                          type: "object",
+                          properties: {
+                            latest_report: {
+                              $ref: "#/components/schemas/DriftReport",
+                              nullable: true,
+                            },
+                          },
+                        },
+                      ],
+                    },
+                  },
+                },
+              },
+              "401": { description: "Unauthorized." },
+              "404": { description: "Repository not found." },
+            },
+          },
+        },
+        "/api/scan": {
+          post: {
+            summary: "Start a new repository scan",
+            description: "Registers a repository if it does not exist and schedules a new scan.",
+            requestBody: {
+              required: true,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    required: ["url"],
+                    properties: {
+                      url: {
+                        type: "string",
+                        description: "The Git URL of the repository (HTTP/HTTPS).",
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            responses: {
+              "201": {
+                description: "Scan successfully scheduled.",
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "object",
+                      properties: {
+                        scan_id: { type: "string", format: "uuid" },
+                      },
+                    },
+                  },
+                },
+              },
+              "400": { description: "Invalid input or malformed URL." },
+              "401": { description: "Unauthorized." },
+            },
+          },
+        },
+        "/api/scans/{id}": {
+          get: {
+            summary: "Retrieve scan status",
+            description: "Fetch the current status and results of a scheduled scan.",
+            parameters: [
+              {
+                in: "path",
+                name: "id",
+                required: true,
+                schema: { type: "string", format: "uuid" },
+                description: "The scan ID.",
+              },
+            ],
+            responses: {
+              "200": {
+                description: "Scan details and findings.",
+                content: {
+                  "application/json": {
+                    schema: {
+                      allOf: [
+                        { $ref: "#/components/schemas/Scan" },
+                        {
+                          type: "object",
+                          properties: {
+                            findings: {
+                              type: "array",
+                              items: { $ref: "#/components/schemas/Finding" },
+                            },
+                          },
+                        },
+                      ],
+                    },
+                  },
+                },
+              },
+              "401": { description: "Unauthorized." },
+              "404": { description: "Scan not found." },
+            },
+          },
+        },
+        "/api/report/{id}": {
+          get: {
+            summary: "Retrieve drift report",
+            description: "Fetch the final drift report details for a completed scan.",
+            parameters: [
+              {
+                in: "path",
+                name: "id",
+                required: true,
+                schema: { type: "string", format: "uuid" },
+                description: "The scan ID.",
+              },
+            ],
+            responses: {
+              "200": {
+                description: "Completed drift report.",
+                content: {
+                  "application/json": {
+                    schema: { $ref: "#/components/schemas/DriftReport" },
+                  },
+                },
+              },
+              "401": { description: "Unauthorized." },
+              "404": { description: "Report not found or scan not completed." },
+            },
+          },
+        },
+      },
     },
   });
   return NextResponse.json(spec);

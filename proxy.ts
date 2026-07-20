@@ -11,6 +11,7 @@ export function proxy(request: NextRequest) {
   // Protect /repos and all repo/scan/report APIs
   const isProtectedRoute =
     pathname.startsWith("/repos") ||
+    pathname.startsWith("/api-docs") ||
     pathname.startsWith("/api/repos") ||
     pathname.startsWith("/api/scans") ||
     pathname.startsWith("/api/reports");

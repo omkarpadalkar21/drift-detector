@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server";
 export function proxy(request: NextRequest) {
   const sessionToken =
     request.cookies.get("better-auth.session_token")?.value ||
-    request.cookies.get("__secure-better-auth.session_token")?.value;
+    request.cookies.get("__Secure-better-auth.session_token")?.value;
 
   const { pathname } = request.nextUrl;
 
@@ -29,6 +29,11 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  // Redirect already-authenticated users away from auth pages
+  if (sessionToken && (pathname === "/sign-in" || pathname === "/sign-up")) {
+    return NextResponse.redirect(new URL("/repos", request.url));
+  }
+
   return NextResponse.next();
 }
 
@@ -40,5 +45,7 @@ export const config = {
     "/api/repos/:path*",
     "/api/scans/:path*",
     "/api/reports/:path*",
+    "/sign-in",
+    "/sign-up",
   ],
 };

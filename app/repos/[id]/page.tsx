@@ -125,22 +125,39 @@ export default function RepoDetailPage({ params }: { params: Promise<{ id: strin
   };
 
   // SVG Sparkline generator for Trend Points
-  const trendSparklinePath = useMemo(() => {
+  const trendSparklineData = useMemo(() => {
     const trend = repoData?.latest_report?.trend;
-    if (!trend || trend.length < 2) return "";
+    if (!trend || trend.length < 2) return { path: "", points: [] };
     const width = 500;
     const height = 100;
-    const padding = 10;
+    const paddingX = 20;
+    const paddingY = 25;
 
-    const xStep = (width - padding * 2) / (trend.length - 1);
+    const scores = trend.map((t) => t.score);
+    const minScore = Math.min(...scores);
+    const maxScore = Math.max(...scores);
+    const scoreRange = maxScore - minScore;
+
+    const xStep = (width - paddingX * 2) / (trend.length - 1);
+
     const points = trend.map((pt, idx) => {
-      const x = padding + idx * xStep;
-      // score is between 0 and 1
-      const y = height - padding - pt.score * (height - padding * 2);
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
+      const x = paddingX + idx * xStep;
+      let y: number;
+      if (scoreRange === 0) {
+        y = height / 2;
+      } else {
+        y = height - paddingY - ((pt.score - minScore) / scoreRange) * (height - paddingY * 2);
+      }
+      return {
+        x,
+        y,
+        score: pt.score,
+        date: pt.date,
+      };
     });
 
-    return `M ${points.join(" L ")}`;
+    const path = `M ${points.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" L ")}`;
+    return { path, points };
   }, [repoData]);
 
   // Animation configuration
@@ -372,7 +389,7 @@ export default function RepoDetailPage({ params }: { params: Promise<{ id: strin
                   </Link>
                 </div>
               </div>
-              <div className="relative h-20 w-full bg-muted/10 rounded border border-border/20 flex items-center justify-center p-2">
+              <div className="relative h-24 w-full bg-muted/10 rounded-lg border border-border/20 flex items-center justify-center p-2 overflow-hidden">
                 <svg
                   className="w-full h-full text-primary"
                   viewBox="0 0 500 100"
@@ -381,34 +398,37 @@ export default function RepoDetailPage({ params }: { params: Promise<{ id: strin
                 >
                   {/* SVG Line */}
                   <motion.path
-                    d={trendSparklinePath}
+                    d={trendSparklineData.path}
                     stroke="currentColor"
                     strokeWidth="3"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     initial={{ pathLength: 0 }}
                     animate={{ pathLength: 1 }}
-                    transition={{ duration: 1.5, ease: "easeInOut" }}
+                    transition={{ duration: 1.2, ease: "easeInOut" }}
                   />
-                  {/* Grid helper dots */}
-                  {report.trend.map((pt, idx) => {
-                    const width = 500;
-                    const height = 100;
-                    const padding = 10;
-                    const xStep = (width - padding * 2) / (report.trend.length - 1);
-                    const cx = padding + idx * xStep;
-                    const cy = height - padding - pt.score * (height - padding * 2);
-                    return (
-                      <circle
-                        key={idx}
-                        cx={cx}
-                        cy={cy}
-                        r="4.5"
-                        className="fill-background stroke-primary stroke-2"
-                      />
-                    );
-                  })}
                 </svg>
+
+                {/* Undistorted round dots with hover tooltips */}
+                {trendSparklineData.points.map((pt, idx) => (
+                  <div
+                    key={idx}
+                    className="absolute group/dot -translate-x-1/2 -translate-y-1/2 z-10"
+                    style={{
+                      left: `${(pt.x / 500) * 100}%`,
+                      top: `${(pt.y / 100) * 100}%`,
+                    }}
+                  >
+                    <div className="h-3 w-3 rounded-full bg-background border-2 border-primary shadow-sm transition-transform group-hover/dot:scale-125 group-hover/dot:bg-primary" />
+                    {/* Hover Tooltip */}
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover/dot:flex flex-col items-center pointer-events-none z-20">
+                      <div className="bg-popover border border-border text-popover-foreground text-[10px] font-semibold px-2 py-1 rounded shadow-md whitespace-nowrap">
+                        {(pt.score * 100).toFixed(0)}% ({new Date(pt.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })})
+                      </div>
+                      <div className="w-1.5 h-1.5 bg-popover border-b border-r border-border rotate-45 -mt-1" />
+                    </div>
+                  </div>
+                ))}
               </div>
             </Card>
           )}

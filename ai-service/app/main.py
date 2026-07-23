@@ -26,8 +26,8 @@ def health():
             "embedder": EMBEDDER, "index": INDEX_BACKEND}
 
 
-@app.post("/analyze", response_model=AnalyzeResponse)
-def analyze(req: AnalyzeRequest):
+def run_analysis(req: AnalyzeRequest) -> AnalyzeResponse:
+    """Core rule/semantic/scoring pipeline — shared by /analyze and /scan."""
     findings: list[Finding] = []
     dated_scores: list[tuple[str, float]] = []
 
@@ -102,3 +102,13 @@ def analyze(req: AnalyzeRequest):
         engine_info={"embedder": EMBEDDER, "index": INDEX_BACKEND,
                      "rules": len(engine.rules), "seed_patterns": len(matcher.patterns)},
     )
+
+
+@app.post("/analyze", response_model=AnalyzeResponse)
+def analyze(req: AnalyzeRequest):
+    return run_analysis(req)
+
+
+# /scan endpoint — URL-in, AnalyzeResponse-out
+from .scan import router as scan_router  # noqa: E402 — after app & run_analysis are defined
+app.include_router(scan_router)

@@ -1,0 +1,29 @@
+{
+  "patterns": [
+    {"text": "firewall rule removed allowing all traffic from any source", "category": "network_exposure", "severity": "CRITICAL", "base_score": 88},
+    {"text": "security group opened to the entire internet on all ports", "category": "network_exposure", "severity": "CRITICAL", "base_score": 90},
+    {"text": "ssh access permitted from public networks", "category": "network_exposure", "severity": "CRITICAL", "base_score": 88},
+    {"text": "database port exposed externally without restriction", "category": "network_exposure", "severity": "HIGH", "base_score": 80},
+    {"text": "allow ingress from any source to internal service", "category": "network_exposure", "severity": "HIGH", "base_score": 78},
+    {"text": "admin interface reachable without network restriction", "category": "network_exposure", "severity": "HIGH", "base_score": 76},
+    {"text": "plaintext password or api key committed into configuration", "category": "secrets_auth", "severity": "CRITICAL", "base_score": 95},
+    {"text": "authentication check disabled for an endpoint", "category": "secrets_auth", "severity": "CRITICAL", "base_score": 92},
+    {"text": "anonymous users granted access to protected resource", "category": "secrets_auth", "severity": "HIGH", "base_score": 82},
+    {"text": "default credentials left unchanged in service config", "category": "secrets_auth", "severity": "HIGH", "base_score": 80},
+    {"text": "session timeout extended to effectively never expire", "category": "secrets_auth", "severity": "MEDIUM", "base_score": 55},
+    {"text": "certificate validation turned off for outbound requests", "category": "insecure_protocols", "severity": "HIGH", "base_score": 82},
+    {"text": "traffic downgraded from https to unencrypted http", "category": "insecure_protocols", "severity": "HIGH", "base_score": 75},
+    {"text": "deprecated tls version enabled for compatibility", "category": "insecure_protocols", "severity": "MEDIUM", "base_score": 60},
+    {"text": "weak encryption cipher selected in server config", "category": "insecure_protocols", "severity": "MEDIUM", "base_score": 60},
+    {"text": "memory and cpu limits deleted from workload spec", "category": "resource_limits", "severity": "MEDIUM", "base_score": 55},
+    {"text": "connection limit removed from server configuration", "category": "resource_limits", "severity": "MEDIUM", "base_score": 50},
+    {"text": "request rate limiting disabled on public endpoint", "category": "resource_limits", "severity": "HIGH", "base_score": 68},
+    {"text": "autoscaling maximum raised far beyond cluster capacity", "category": "resource_limits", "severity": "LOW", "base_score": 38},
+    {"text": "container granted privileged mode with host access", "category": "access_control", "severity": "CRITICAL", "base_score": 88},
+    {"text": "process configured to run as the root user", "category": "access_control", "severity": "HIGH", "base_score": 78},
+    {"text": "wildcard permissions granted across all resources and actions", "category": "access_control", "severity": "CRITICAL", "base_score": 90},
+    {"text": "service account bound to cluster administrator role", "category": "access_control", "severity": "CRITICAL", "base_score": 88},
+    {"text": "file permissions loosened to be writable by everyone", "category": "access_control", "severity": "HIGH", "base_score": 72},
+    {"text": "audit logging disabled for administrative actions", "category": "access_control", "severity": "MEDIUM", "base_score": 58}
+  ]
+}

@@ -1,0 +1,6 @@
+﻿venv/
+dataset/
+synthetic-infra-repo/
+mined.json
+wrapped.json
+__pycache__/

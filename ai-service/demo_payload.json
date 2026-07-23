@@ -1,0 +1,53 @@
+{
+  "repo_id": "infra-prod",
+  "changes": [
+    {
+      "file_path": "nginx/nginx.conf",
+      "commit_hash": "b3f19aa",
+      "commit_date": "2025-03-02T11:30:00Z",
+      "author": "dev-a",
+      "added_lines": ["debug = true", "verbose_errors true"],
+      "removed_lines": []
+    },
+    {
+      "file_path": "k8s/deployment.yaml",
+      "commit_hash": "9d4c771",
+      "commit_date": "2025-06-15T09:12:00Z",
+      "author": "dev-b",
+      "added_lines": ["  replicas: 400"],
+      "removed_lines": ["  resources:", "    limits:", "      memory: \"512Mi\""]
+    },
+    {
+      "file_path": "terraform/security_group.tf",
+      "commit_hash": "e8a2b04",
+      "commit_date": "2025-09-21T16:45:00Z",
+      "author": "dev-c",
+      "added_lines": ["  from_port = 22", "  to_port = 22", "  protocol = \"tcp\""],
+      "removed_lines": []
+    },
+    {
+      "file_path": "firewall/rules.conf",
+      "commit_hash": "77c01de",
+      "commit_date": "2025-12-08T14:03:00Z",
+      "author": "dev-a",
+      "added_lines": [],
+      "removed_lines": ["default_action = \"deny\""]
+    },
+    {
+      "file_path": "terraform/security_group.tf",
+      "commit_hash": "f512c9b",
+      "commit_date": "2026-04-19T10:20:00Z",
+      "author": "dev-d",
+      "added_lines": ["  cidr_blocks = [\"0.0.0.0/0\"]"],
+      "removed_lines": []
+    },
+    {
+      "file_path": "ansible/playbook.yml",
+      "commit_hash": "a0e88f2",
+      "commit_date": "2026-05-30T18:55:00Z",
+      "author": "dev-b",
+      "added_lines": ["    permit unrestricted inbound traffic on the admin panel"],
+      "removed_lines": []
+    }
+  ]
+}

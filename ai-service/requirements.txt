@@ -1,0 +1,12 @@
+fastapi>=0.110
+uvicorn>=0.29
+numpy>=1.26
+pydantic>=2.6
+
+# Full semantic layer (recommended on your laptop; service auto-falls back without them)
+sentence-transformers>=2.7
+faiss-cpu>=1.8
+
+# Dev
+pytest>=8.0
+httpx>=0.27

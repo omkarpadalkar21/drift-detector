@@ -315,8 +315,11 @@ export default function RepoDetailPage({ params }: { params: Promise<{ id: strin
                   <ShieldAlert className="h-10 w-10 text-primary" />
                 </div>
                 <CardHeader className="pb-2">
-                  <CardDescription className="font-bold text-xs uppercase tracking-wider text-muted-foreground">
-                    Repository Health Score
+                  <CardDescription className="font-bold text-xs uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+                    <span>Accumulated Drift Score</span>
+                    <span className="font-mono text-[10px] font-semibold text-muted-foreground/80">
+                      Raw: {((accumulatedScorePct ?? report.drift_score * 100) / 100).toFixed(2)}
+                    </span>
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -448,7 +451,7 @@ export default function RepoDetailPage({ params }: { params: Promise<{ id: strin
                   </Link>
                 </div>
               </div>
-              <div className="relative h-24 w-full bg-muted/10 rounded-lg border border-border/20 flex items-center justify-center p-2 overflow-hidden">
+              <div className="relative h-28 w-full bg-muted/10 rounded-lg border border-border/20 flex items-center justify-center p-4 my-2">
                 <svg
                   className="w-full h-full text-primary"
                   viewBox="0 0 500 100"
@@ -468,26 +471,45 @@ export default function RepoDetailPage({ params }: { params: Promise<{ id: strin
                   />
                 </svg>
 
-                {/* Undistorted round dots with hover tooltips */}
-                {trendSparklineData.points.map((pt, idx) => (
-                  <div
-                    key={idx}
-                    className="absolute group/dot -translate-x-1/2 -translate-y-1/2 z-10"
-                    style={{
-                      left: `${(pt.x / 500) * 100}%`,
-                      top: `${(pt.y / 100) * 100}%`,
-                    }}
-                  >
-                    <div className="h-3 w-3 rounded-full bg-background border-2 border-primary shadow-sm transition-transform group-hover/dot:scale-125 group-hover/dot:bg-primary" />
-                    {/* Hover Tooltip */}
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover/dot:flex flex-col items-center pointer-events-none z-20">
-                      <div className="bg-popover border border-border text-popover-foreground text-[10px] font-semibold px-2 py-1 rounded shadow-md whitespace-nowrap">
-                        {(pt.score * 100).toFixed(0)}% accumulated ({new Date(pt.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })})
+                {/* Undistorted round dots with hover tooltips (high z-index, smart placement) */}
+                {trendSparklineData.points.map((pt, idx) => {
+                  const isTopHalf = pt.y < 45;
+                  return (
+                    <div
+                      key={idx}
+                      className="absolute group/dot -translate-x-1/2 -translate-y-1/2 z-20 hover:z-50"
+                      style={{
+                        left: `${(pt.x / 500) * 100}%`,
+                        top: `${(pt.y / 100) * 100}%`,
+                      }}
+                    >
+                      <div className="h-3.5 w-3.5 rounded-full bg-background border-2 border-primary shadow-md transition-transform group-hover/dot:scale-125 group-hover/dot:bg-primary group-hover/dot:border-background cursor-pointer" />
+                      {/* Hover Tooltip - High Z Index & Dynamic Position */}
+                      <div
+                        className={`absolute left-1/2 -translate-x-1/2 hidden group-hover/dot:flex flex-col items-center pointer-events-none z-50 ${
+                          isTopHalf ? "top-full mt-2" : "bottom-full mb-2"
+                        }`}
+                      >
+                        {!isTopHalf && (
+                          <>
+                            <div className="bg-popover border border-border text-popover-foreground text-[10px] font-semibold px-2.5 py-1 rounded-md shadow-lg whitespace-nowrap z-50">
+                              {(pt.score * 100).toFixed(0)}% accumulated ({new Date(pt.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })})
+                            </div>
+                            <div className="w-1.5 h-1.5 bg-popover border-b border-r border-border rotate-45 -mt-1" />
+                          </>
+                        )}
+                        {isTopHalf && (
+                          <>
+                            <div className="w-1.5 h-1.5 bg-popover border-t border-l border-border rotate-45 -mb-1 z-50" />
+                            <div className="bg-popover border border-border text-popover-foreground text-[10px] font-semibold px-2.5 py-1 rounded-md shadow-lg whitespace-nowrap z-50">
+                              {(pt.score * 100).toFixed(0)}% accumulated ({new Date(pt.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })})
+                            </div>
+                          </>
+                        )}
                       </div>
-                      <div className="w-1.5 h-1.5 bg-popover border-b border-r border-border rotate-45 -mt-1" />
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </Card>
           )}

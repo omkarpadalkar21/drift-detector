@@ -270,8 +270,8 @@ export default function ReposPage() {
                     <div className="space-y-2">
                       <div className="flex justify-between items-center text-xs">
                         <span className="font-semibold text-muted-foreground">Drift Score</span>
-                        <span className={`px-2 py-0.5 rounded-full border text-[10px] font-bold ${getScoreColor(repo.latest_drift_score)}`}>
-                          {Math.round(scorePct)} - {getScoreLabel(repo.latest_drift_score)}
+                        <span className={`px-2.5 py-0.5 rounded-full border text-[10px] font-bold ${getScoreColor(repo.latest_drift_score)}`}>
+                          {Math.round(scorePct)}% ({(scorePct / 100).toFixed(2)}) • {getScoreLabel(repo.latest_drift_score)}
                         </span>
                       </div>
                       <div className="h-2 w-full bg-muted rounded-full overflow-hidden border border-border/20">

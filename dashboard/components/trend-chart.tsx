@@ -205,7 +205,7 @@ export function TrendChart({ trend, showDualSeries = false }: TrendChartProps) {
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.35} />
             <XAxis dataKey="xLabel" {...commonAxisProps} dy={8} />
             <YAxis {...commonAxisProps} domain={[0, 100]} tickFormatter={(v) => `${v}%`} dx={-8} />
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip content={<CustomTooltip />} wrapperStyle={{ zIndex: 1000 }} allowEscapeViewBox={{ x: true, y: true }} />
             <Legend
               formatter={(value) => (value === "score" ? "Accumulated Score (History)" : "Per-scan Impact (Estimate)")}
               wrapperStyle={{ fontSize: "11px", paddingTop: "12px" }}
@@ -291,7 +291,7 @@ export function TrendChart({ trend, showDualSeries = false }: TrendChartProps) {
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.35} />
           <XAxis dataKey="xLabel" {...commonAxisProps} dy={8} />
           <YAxis {...commonAxisProps} domain={[0, 100]} tickFormatter={(v) => `${v}%`} dx={-8} />
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip content={<CustomTooltip />} wrapperStyle={{ zIndex: 1000 }} allowEscapeViewBox={{ x: true, y: true }} />
           <Area
             type="monotone"
             dataKey="score"
